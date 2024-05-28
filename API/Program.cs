@@ -1,3 +1,4 @@
+using API.Data;
 using API.Extensions;
 using API.Middleware;
 
@@ -22,8 +23,8 @@ app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+  app.UseSwagger();
+  app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
@@ -32,5 +33,21 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+  var services = scope.ServiceProvider;
+  try  {
+    var context = services.GetRequiredService<DataContext>();
+    // await context.Database.MigrateAsync();
+    await context.Database.EnsureCreatedAsync();
+    await Seed.SeedUsers(context);
+  }
+  catch (Exception ex)
+  {
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "An error occurred during migration");
+  }
+}
 
 app.Run();

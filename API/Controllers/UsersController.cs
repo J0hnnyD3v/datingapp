@@ -4,30 +4,31 @@ using Microsoft.EntityFrameworkCore;
 
 using API.Data;
 using API.Entities;
+using API.Interfaces;
 
 namespace API.Controllers;
 
 [Authorize]
 public class UsersController : BaseApiController
 {
-  private readonly DataContext _context;
+  private readonly IUserRepository _userRepository;
 
-  public UsersController(DataContext context)
+  public UsersController(IUserRepository userRepository)
   {
-    _context = context;
+    _userRepository = userRepository;
   }
 
   [HttpGet]
   public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers()
   {
-    var users = await _context.Users.ToListAsync();
+    var users = await _userRepository.GetUsersAsync();
     return Ok(users);
   }
 
-  [HttpGet("{id}")] // /api/users/1
-  public async Task<ActionResult<AppUser>> GetUser(int id)
+  [HttpGet("{email}")] // /api/users/email@email.com
+  public async Task<ActionResult<AppUser>> GetUser(string email)
   {
-    var user = await _context.Users.FindAsync(id);
+    var user = await _userRepository.GetUserByEmailAsync(email);
     return Ok(user);
   }
 
